@@ -9,19 +9,19 @@ router.post('/register', controller.register);
 // Users
 router.get('/users', controller.verifyToken, controller.getAllUsers);
 router.get('/users/:id', controller.verifyToken, controller.getUser);
-router.put('/users/:id', controller.verifyToken, controller.updateUser);
 
 // Products
-router.get('/products', controller.searchProducts);
-router.post('/products', controller.verifyToken, controller.createProduct);
+router.get('/products', (req, res) => {
+    const service = require('../service');
+    const results = service.searchProducts(req.query.q || '');
+    return res.json(results);
+});
+
+// Admin (no auth middleware)
+router.get('/admin/dashboard', controller.adminDashboard);
 
 // Utilities
 router.post('/ping', controller.ping);
-router.post('/calculate', controller.calculate);
 router.get('/file', controller.getFile);
-
-// Admin
-router.get('/admin/dashboard', controller.adminDashboard);
-router.delete('/admin/users/:id', controller.deleteUser);
 
 module.exports = router;
