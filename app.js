@@ -9,7 +9,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -25,25 +24,17 @@ app.get('/', (req, res) => {
             'POST /api/register',
             'GET  /api/users',
             'GET  /api/users/:id',
-            'PUT  /api/users/:id',
-            'GET  /api/products?q=&search=',
-            'POST /api/products',
-            'POST /api/ping',
-            'POST /api/calculate',
-            'GET  /api/file?file=',
+            'GET  /api/products?q=',
             'GET  /api/admin/dashboard',
-            'DELETE /api/admin/users/:id',
+            'POST /api/ping',
+            'GET  /api/file?file=',
         ],
     });
 });
 
-// Global error handler
 app.use((err, req, res, _next) => {
     console.error(err);
-    res.status(500).json({
-        error: err.message,
-        stack: err.stack,
-    });
+    res.status(500).json({ error: err.message, stack: err.stack });
 });
 
 app.listen(PORT, () => {

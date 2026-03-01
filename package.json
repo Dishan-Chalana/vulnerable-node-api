@@ -1,7 +1,7 @@
 {
   "name": "vulnerable-node-api",
   "version": "1.0.0",
-  "description": "Intentionally vulnerable Node.js REST API for security tool benchmarking",
+  "description": "Node.js REST API for security tool benchmarking",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"

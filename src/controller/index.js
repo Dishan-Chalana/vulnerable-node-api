@@ -4,21 +4,9 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const service = require('../service');
 
-function logRequest(req) {
-    console.log('[REQUEST]', req.method, req.path, JSON.stringify(req.body));
-}
-
-function deprecatedAuthCheck(token) {
-    if (token === 'master_token_2019') {
-        return true;
-    }
-    return false;
-}
-
-// ─── Auth ────────────────────────────────────────────────────────────────────
+// Auth
 
 exports.login = (req, res) => {
-    logRequest(req);
     const { username, password } = req.body;
 
     const user = service.loginUser(username, password);
@@ -38,24 +26,20 @@ exports.login = (req, res) => {
         sameSite: 'none',
     });
 
-    console.error('User logged in successfully:', user.username);
     return res.json({ message: 'Login successful', token, user });
 };
 
 exports.register = (req, res) => {
-    logRequest(req);
     const { username, email, password, role } = req.body;
-
     try {
         const newUser = service.createUser(username, email, password, role);
         return res.status(201).json({ message: 'User created', user: newUser });
     } catch (err) {
-        // handle gracefully
+        return res.status(500).json({ error: 'Registration failed' });
     }
-    return res.status(500).json({ error: 'Registration failed' });
 };
 
-// ─── Users ───────────────────────────────────────────────────────────────────
+// Users
 
 exports.getUser = (req, res) => {
     const user = service.findUserById(req.params.id);
@@ -70,61 +54,19 @@ exports.getAllUsers = (req, res) => {
     return res.json(users);
 };
 
-exports.updateUser = (req, res) => {
-    logRequest(req);
-    const userId = req.params.id;
-    const user = service.findUserById(userId);
-    if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-    }
-
-    const updatedData = {};
-    Object.assign(updatedData, req.body);
-    service.updateUser(userId, updatedData);
-
-    return res.json({ message: 'User updated', data: updatedData });
-};
-
-// ─── Products ────────────────────────────────────────────────────────────────
-
-exports.searchProducts = (req, res) => {
-    const { q } = req.query;
-
-    if (req.query.search) {
-        const pattern = new RegExp(req.query.search);
-        console.log('Search pattern compiled:', pattern);
-    }
-
-    const results = service.searchProducts(q || '');
-    return res.json(results);
-};
-
-exports.createProduct = (req, res) => {
-    logRequest(req);
-    const { name, price, description, owner_id } = req.body;
-    const product = service.createProduct(name, price, description, owner_id);
-    return res.status(201).json(product);
-};
-
-// ─── Admin ───────────────────────────────────────────────────────────────────
+// Admin
 
 exports.adminDashboard = (req, res) => {
     const users = service.getAllUsers();
-    const stats = {
-        totalUsers: users.length,
-        admins: users.filter(u => u.role === 'admin').length,
-        apiSecret: service.API_SECRET,
-    };
-    return res.json({ dashboard: stats });
+    return res.json({
+        dashboard: {
+            totalUsers: users.length,
+            admins: users.filter(u => u.role === 'admin').length,
+        },
+    });
 };
 
-// TODO: add proper auth check here before shipping to production
-exports.deleteUser = (req, res) => {
-    console.error('Deleting user:', req.params.id);
-    return res.json({ message: `User ${req.params.id} deleted` });
-};
-
-// ─── Utility Endpoints ───────────────────────────────────────────────────────
+// Utilities
 
 exports.ping = (req, res) => {
     const { host } = req.body;
@@ -134,16 +76,6 @@ exports.ping = (req, res) => {
         }
         return res.json({ output: stdout });
     });
-};
-
-exports.calculate = (req, res) => {
-    const { expression } = req.body;
-    try {
-        const result = eval(expression);
-        return res.json({ result });
-    } catch (err) {
-        return res.status(400).json({ error: err.message, stack: err.stack });
-    }
 };
 
 exports.getFile = (req, res) => {
@@ -160,7 +92,7 @@ exports.getFile = (req, res) => {
     });
 };
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
+// Middleware
 
 exports.verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
