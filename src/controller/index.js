@@ -151,7 +151,12 @@ exports.getFile = (req, res) => {
     if (!filePath) {
         return res.status(400).json({ error: 'file parameter required' });
     }
-    const fullPath = path.join(__dirname, '..', '..', 'uploads', filePath);
+    const uploadsDir = path.resolve(__dirname, '..', '..', 'uploads');
+    const fullPath = path.resolve(uploadsDir, filePath);
+    const relativePath = path.relative(uploadsDir, fullPath);
+    if (relativePath === '..' || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) {
+        return res.status(400).json({ error: 'invalid file path' });
+    }
     fs.readFile(fullPath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ error: err.message, stack: err.stack });
