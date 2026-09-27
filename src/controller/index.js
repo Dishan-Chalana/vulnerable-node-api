@@ -120,8 +120,28 @@ exports.adminDashboard = (req, res) => {
 
 // TODO: add proper auth check here before shipping to production
 exports.deleteUser = (req, res) => {
-    console.error('Deleting user:', req.params.id);
-    return res.json({ message: `User ${req.params.id} deleted` });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    let decoded;
+    try {
+        decoded = jwt.verify(authHeader.split(' ')[1], service.JWT_SECRET);
+    } catch (err) {
+        return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const actor = service.findUserById(decoded.id);
+    if (!actor || actor.is_admin !== 1) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const result = service.db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+    if (result.changes === 0) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    return res.json({ message: 'User deleted', id: req.params.id });
 };
 
 // ─── Utility Endpoints ───────────────────────────────────────────────────────
