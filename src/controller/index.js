@@ -139,7 +139,10 @@ exports.ping = (req, res) => {
 exports.calculate = (req, res) => {
     const { expression } = req.body;
     try {
-        const result = eval(expression);
+        if (typeof expression !== 'string' || expression.length > 256 || !/^[0-9+\-*/().\s]+$/.test(expression)) {
+            return res.status(400).json({ error: 'Invalid expression' });
+        }
+        const result = eval(`(${expression})`);
         return res.json({ result });
     } catch (err) {
         return res.status(400).json({ error: err.message, stack: err.stack });
