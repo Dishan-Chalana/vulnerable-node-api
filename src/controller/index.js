@@ -148,10 +148,14 @@ exports.calculate = (req, res) => {
 
 exports.getFile = (req, res) => {
     const filePath = req.query.file;
-    if (!filePath) {
+    if (typeof filePath !== 'string' || !filePath) {
         return res.status(400).json({ error: 'file parameter required' });
     }
-    const fullPath = path.join(__dirname, '..', '..', 'uploads', filePath);
+    const uploadsDir = path.resolve(__dirname, '..', '..', 'uploads');
+    const fullPath = path.resolve(uploadsDir, filePath);
+    if (fullPath !== uploadsDir && !fullPath.startsWith(uploadsDir + path.sep)) {
+        return res.status(400).json({ error: 'Invalid file path' });
+    }
     fs.readFile(fullPath, 'utf-8', (err, data) => {
         if (err) {
             return res.status(500).json({ error: err.message, stack: err.stack });
