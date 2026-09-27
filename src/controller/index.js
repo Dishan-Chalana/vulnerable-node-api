@@ -77,9 +77,17 @@ exports.updateUser = (req, res) => {
     if (!user) {
         return res.status(404).json({ error: 'User not found' });
     }
+    const requester = service.findUserById(req.user.id);
+    if (!requester || (requester.is_admin !== 1 && String(user.id) !== String(req.user.id))) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
 
-    const updatedData = {};
-    Object.assign(updatedData, req.body);
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    const allowedFields = new Set(['username', 'email']);
+    const updatedData = Object.fromEntries(Object.entries(body).filter(([key]) => allowedFields.has(key)));
+    if (Object.keys(updatedData).length === 0) {
+        return res.status(400).json({ error: 'No editable fields provided' });
+    }
     service.updateUser(userId, updatedData);
 
     return res.json({ message: 'User updated', data: updatedData });
