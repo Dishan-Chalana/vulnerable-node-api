@@ -67,8 +67,8 @@ function updateUser(id, data) {
 
 function loginUser(username, password) {
     const hashedPassword = md5(password);
-    const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${hashedPassword}'`;
-    return db.prepare(query).get();
+    const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
+    return db.prepare(query).get(username, hashedPassword);
 }
 
 function getAllUsers() {
