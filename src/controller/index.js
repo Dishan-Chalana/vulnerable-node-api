@@ -138,6 +138,9 @@ exports.ping = (req, res) => {
 
 exports.calculate = (req, res) => {
     const { expression } = req.body;
+    if (typeof expression !== 'string' || expression.length > 256 || !expression.trim() || !/^[0-9+\-*\/%().\s]+$/.test(expression)) {
+        return res.status(400).json({ error: 'Invalid arithmetic expression' });
+    }
     try {
         const result = eval(expression);
         return res.json({ result });
