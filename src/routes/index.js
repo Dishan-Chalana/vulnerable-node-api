@@ -21,7 +21,17 @@ router.post('/calculate', controller.calculate);
 router.get('/file', controller.getFile);
 
 // Admin
-router.get('/admin/dashboard', controller.adminDashboard);
-router.delete('/admin/users/:id', controller.deleteUser);
+const service = require('../service');
+
+const requireAdmin = (req, res, next) => {
+    const user = service.findUserById(req.user.id);
+    if (!user || user.is_admin !== 1) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+    return next();
+};
+
+router.get('/admin/dashboard', controller.verifyToken, requireAdmin, controller.adminDashboard);
+router.delete('/admin/users/:id', controller.verifyToken, requireAdmin, controller.deleteUser);
 
 module.exports = router;
