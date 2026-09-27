@@ -77,9 +77,17 @@ exports.updateUser = (req, res) => {
     if (!user) {
         return res.status(404).json({ error: 'User not found' });
     }
+    if (String(req.user.id) !== String(userId)) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
 
+    const body = req.body || {};
     const updatedData = {};
-    Object.assign(updatedData, req.body);
+    if (body.username !== undefined) updatedData.username = body.username;
+    if (body.email !== undefined) updatedData.email = body.email;
+    if (Object.keys(updatedData).length === 0) {
+        return res.status(400).json({ error: 'No editable fields supplied' });
+    }
     service.updateUser(userId, updatedData);
 
     return res.json({ message: 'User updated', data: updatedData });
