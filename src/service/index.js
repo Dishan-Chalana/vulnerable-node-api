@@ -76,8 +76,8 @@ function getAllUsers() {
 }
 
 function searchProducts(searchTerm) {
-    const query = `SELECT * FROM products WHERE name LIKE '%${searchTerm}%'`;
-    return db.prepare(query).all();
+    const query = 'SELECT * FROM products WHERE name LIKE ?';
+    return db.prepare(query).all(`%${searchTerm}%`);
 }
 
 function createProduct(name, price, description, ownerId) {
